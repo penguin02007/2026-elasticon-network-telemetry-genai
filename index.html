@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bridging Network Telemetry and GenAI</title>
+<style>
+  html,body{margin:0;height:100%;background:#111;color:#eee;font:14px system-ui,sans-serif}
+  #stage{position:fixed;inset:0 0 44px 0;display:flex;align-items:center;justify-content:center}
+  #stage img{max-width:100%;max-height:100%;object-fit:contain;box-shadow:0 0 30px #000}
+  .nav{position:fixed;top:0;bottom:44px;width:15%;background:none;border:0;color:#fff;font-size:40px;opacity:0;cursor:pointer;transition:opacity .2s}
+  .nav:hover{opacity:.6;background:rgba(255,255,255,.05)}
+  #prev{left:0}#next{right:0}
+  #bar{position:fixed;left:0;right:0;bottom:0;height:44px;display:flex;align-items:center;justify-content:center;gap:16px;background:#1b1b1b}
+  #bar button{background:#333;color:#fff;border:0;border-radius:4px;padding:6px 14px;cursor:pointer;font-size:14px}
+  #bar button:hover{background:#4a4a4a}
+</style>
+</head>
+<body>
+<div id="stage"><img id="slide" alt="Slide"></div>
+<button class="nav" id="prev" aria-label="Previous slide">&#10094;</button>
+<button class="nav" id="next" aria-label="Next slide">&#10095;</button>
+<div id="bar">
+  <button id="b-prev">&larr; Prev</button>
+  <span id="count"></span>
+  <button id="b-next">Next &rarr;</button>
+  <button id="b-full">Fullscreen</button>
+</div>
+<script>
+  const TOTAL = 17;
+  const img = document.getElementById('slide'), count = document.getElementById('count');
+  const pad = n => String(n).padStart(2, '0');
+  let i = Math.min(Math.max(parseInt(location.hash.slice(1)) || 1, 1), TOTAL);
+  function show(n) {
+    i = Math.min(Math.max(n, 1), TOTAL);
+    img.src = 'slides/slide-' + pad(i) + '.jpg';
+    count.textContent = i + ' / ' + TOTAL;
+    history.replaceState(null, '', '#' + i);
+    const nx = new Image(); nx.src = 'slides/slide-' + pad(Math.min(i + 1, TOTAL)) + '.jpg';
+  }
+  const go = d => show(i + d);
+  document.addEventListener('keydown', e => {
+    if (['ArrowRight', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); go(1); }
+    else if (['ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); go(-1); }
+    else if (e.key === 'Home') show(1);
+    else if (e.key === 'End') show(TOTAL);
+    else if (e.key === 'f') document.documentElement.requestFullscreen?.();
+  });
+  for (const id of ['prev', 'b-prev']) document.getElementById(id).onclick = () => go(-1);
+  for (const id of ['next', 'b-next']) document.getElementById(id).onclick = () => go(1);
+  document.getElementById('b-full').onclick = () => document.documentElement.requestFullscreen?.();
+  window.addEventListener('hashchange', () => show(parseInt(location.hash.slice(1)) || 1));
+  show(i);
+</script>
+</body>
+</html>
